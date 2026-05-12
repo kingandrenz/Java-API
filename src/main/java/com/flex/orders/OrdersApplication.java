@@ -17,10 +17,15 @@ public class OrdersApplication {
 	@Bean
 	CommandLineRunner seedData(OrderRepository repository) {
 		return (args) -> {
-			// Sample data
-			repository.save(new Order("Alice", 100.0, "PENDING"));
-			repository.save(new Order("Bob", 200.0, "SHIPPED"));
-			repository.save(new Order("Charlie", 150.0, "DELIVERED"));
+			if (repository.count() == 0) {
+				// Sample data
+				repository.save(new Order("Alice", 100.0, "PENDING"));
+				repository.save(new Order("Bob", 200.0, "SHIPPED"));
+				repository.save(new Order("Charlie", 150.0, "DELIVERED"));
+				System.out.println("Sample orders added to the database.");
+			} else {
+				System.out.println("Database already contains orders. Skipping seeding.");
+			}
 		};
 	}
 
