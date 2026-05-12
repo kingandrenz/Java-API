@@ -25,7 +25,7 @@ public class Order {
     private double amount;
 
     @NotBlank(message = "Status is required")
-    @Pattern(regexp = "PENDING|COMPLETED|CANCELLED", message = "Status must be PENDING, COMPLETED, or CANCELLED")
+    @Pattern(regexp = "PENDING|SHIPPED|DELIVERED", message = "Status must be PENDING, SHIPPED, or DELIVERED")
     private String status;
 
     public Order() {
