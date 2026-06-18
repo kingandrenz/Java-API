@@ -1,14 +1,10 @@
 package com.flex.orders.model;
 
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Pattern;
-import jakarta.validation.constraints.Positive;
 
 @Entity
 @Table(name = "orders")
@@ -17,15 +13,10 @@ public class Order {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private int id;
 
-    @NotBlank(message = "Customer name is required")
-    @Column(nullable = false)
     private String customerName;
 
-    @Positive(message = "Amount must be positive")
     private double amount;
 
-    @NotBlank(message = "Status is required")
-    @Pattern(regexp = "PENDING|SHIPPED|DELIVERED|CANCELLED", message = "Status must be PENDING, SHIPPED, DELIVERED, or CANCELLED")
     private String status;
 
     public Order() {
