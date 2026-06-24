@@ -7,26 +7,30 @@ import static org.springframework.test.web.servlet.request.MockMvcRequestBuilder
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 import java.util.List;
+
+import com.flex.orders.exception.OrderNotFoundException;
+import com.flex.orders.mapper.OrderMapperImpl;
+import com.flex.orders.model.Order;
+import com.flex.orders.model.OrderStatus;
+import com.flex.orders.service.JwtService;
+import com.flex.orders.service.OrderService;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
-import org.springframework.http.MediaType;
 import org.springframework.context.annotation.Import;
-import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.context.bean.override.mockito.MockitoBean;
 
-import com.flex.orders.service.OrderService;
-import com.flex.orders.service.JwtService;
-import com.flex.orders.mapper.OrderMapperImpl;
-import com.flex.orders.model.Order;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.flex.orders.exception.OrderNotFoundException;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
+import org.springframework.http.MediaType;
+import org.springframework.test.context.bean.override.mockito.MockitoBean;
+import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(OrderController.class)
 @AutoConfigureMockMvc(addFilters = false)
@@ -45,24 +49,24 @@ public class OrderControllerTest {
 
         @Test
         void getOrders_ShouldReturnListOfOrders() throws Exception {
-                Order order = new Order("Anthony", 200.0, "COMPLETED");
-                Order order2 = new Order("Flex", 5000.0, "PENDING");
+                Order order = new Order("Anthony", 200.0, OrderStatus.SHIPPED);
+                Order order2 = new Order("Flex", 5000.0, OrderStatus.PENDING);
 
-                when(orderService.getAll()).thenReturn(List.of(order, order2));
+                when(orderService.getAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(order, order2)));
 
                 mockMvc.perform(get("/orders"))
                                 .andExpectAll(
                                                 status().isOk(),
-                                                jsonPath("$.length()").value(2),
-                                                jsonPath("$.[0].customerName").value("Anthony"),
-                                                jsonPath("$.[1].customerName").value("Flex"),
-                                                jsonPath("$.[0].amount").value(200.0),
-                                                jsonPath("$.[1].amount").value(5000.0));
+                                                jsonPath("$.content.length()").value(2),
+                                                jsonPath("$.content[0].customerName").value("Anthony"),
+                                                jsonPath("$.content[1].customerName").value("Flex"),
+                                                jsonPath("$.content[0].amount").value(200.0),
+                                                jsonPath("$.content[1].amount").value(5000.0));
         }
 
         @Test
         void getOrder_shouldReturnOrderById() throws Exception {
-                Order order = new Order("Anthony", 200.0, "COMPLETED");
+                Order order = new Order("Anthony", 200.0, OrderStatus.SHIPPED);
 
                 when(orderService.getById(1)).thenReturn(order);
 
@@ -70,7 +74,8 @@ public class OrderControllerTest {
                                 .andExpectAll(
                                                 status().isOk(),
                                                 jsonPath("$.customerName").value("Anthony"),
-                                                jsonPath("$.amount").value(200.0));
+                                                jsonPath("$.amount").value(200.0),
+                                                jsonPath("$.status").value("SHIPPED"));
         }
 
         @Test
@@ -86,8 +91,8 @@ public class OrderControllerTest {
 
         @Test
         void createOrder_shouldReturnCreatedWhenValueIsValid() throws Exception {
-                Order request = new Order("Claude", 300.0, "PENDING");
-                Order response = new Order("Claude", 300.0, "PENDING");
+                Order request = new Order("Claude", 300.0, OrderStatus.PENDING);
+                Order response = new Order("Claude", 300.0, OrderStatus.PENDING);
 
                 when(orderService.addOrder(any(Order.class))).thenReturn(response);
 
@@ -103,7 +108,7 @@ public class OrderControllerTest {
 
         @Test
         void createOrder_shouldReturnBadRequest_whenCustomerNameIsEmpty() throws Exception {
-                Order request = new Order("", 300.0, "PENDING");
+                Order request = new Order("", 300.0, OrderStatus.PENDING);
 
                 mockMvc.perform(post("/orders")
                                 .contentType(MediaType.APPLICATION_JSON)
@@ -116,8 +121,8 @@ public class OrderControllerTest {
 
         @Test
         void updateOrder_shouldReturnUpdatedOrder() throws Exception {
-                Order request = new Order("Andrenz", 300.0, "PENDING");
-                Order response = new Order("King Andrenz", 350.0, "PENDING");
+                Order request = new Order("Andrenz", 300.0, OrderStatus.PENDING);
+                Order response = new Order("King Andrenz", 350.0, OrderStatus.PENDING);
 
                 when(orderService.updateOrder(eq(1), any(Order.class))).thenReturn(response);
 

@@ -1,6 +1,8 @@
 package com.flex.orders.model;
 
 import jakarta.persistence.Entity;
+import jakarta.persistence.EnumType;
+import jakarta.persistence.Enumerated;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
@@ -17,12 +19,13 @@ public class Order {
 
     private double amount;
 
-    private String status;
+    @Enumerated(EnumType.STRING)
+    private OrderStatus status;
 
     public Order() {
     }
 
-    public Order(String customerName, double amount, String status) {
+    public Order(String customerName, double amount, OrderStatus status) {
         this.customerName = customerName;
         this.amount = amount;
         this.status = status;
@@ -41,7 +44,7 @@ public class Order {
         return amount;
     }
 
-    public String getStatus() {
+    public OrderStatus getStatus() {
         return status;
     }
 
@@ -54,7 +57,7 @@ public class Order {
         this.amount = amount;
     }
 
-    public void setStatus(String status) {
+    public void setStatus(OrderStatus status) {
         this.status = status;
     }
 

@@ -1,10 +1,12 @@
 package com.flex.orders.service;
 
 import com.flex.orders.repository.OrderRepository;
-import java.util.List;
 
 import com.flex.orders.exception.OrderNotFoundException;
 import com.flex.orders.model.Order;
+
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 @Service
@@ -15,8 +17,8 @@ public class OrderService {
         this.orderRepository = orderRepository;
     }
 
-    public List<Order> getAll() {
-        return orderRepository.findAll();
+    public Page<Order> getAll(Pageable pageable) {
+        return orderRepository.findAll(pageable);
     }
 
     public Order getById(int id) {

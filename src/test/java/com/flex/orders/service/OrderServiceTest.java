@@ -2,21 +2,26 @@ package com.flex.orders.service;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.when;
+import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 import java.util.List;
+import java.util.Optional;
 
-import com.flex.orders.model.Order;
-import com.flex.orders.repository.OrderRepository;
 import com.flex.orders.exception.OrderNotFoundException;
+import com.flex.orders.model.Order;
+import com.flex.orders.model.OrderStatus;
+import com.flex.orders.repository.OrderRepository;
 
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
-import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 
 @ExtendWith(MockitoExtension.class)
 class OrderServiceTest {
@@ -28,26 +33,27 @@ class OrderServiceTest {
 
     @Test
     void shouldReturnAllOrders() {
-        Order order1 = new Order("Alice", 100.0, "PENDING");
-        Order order2 = new Order("Bob", 200.0, "CANCELLED");
+        Order order1 = new Order("Alice", 100.0, OrderStatus.PENDING);
+        Order order2 = new Order("Bob", 200.0, OrderStatus.CANCELLED);
 
-        when(orderRepository.findAll()).thenReturn(List.of(order1, order2));
+        when(orderRepository.findAll(any(Pageable.class))).thenReturn(new PageImpl<>(List.of(order1, order2)));
 
-        List<Order> result = orderService.getAll();
-        assertEquals(2, result.size());
-        assertEquals("Alice", result.get(0).getCustomerName());
-        assertEquals("Bob", result.get(1).getCustomerName());
+        Page<Order> result = orderService.getAll(Pageable.unpaged());
+        assertEquals(2, result.getContent().size());
+        assertEquals("Alice", result.getContent().get(0).getCustomerName());
+        assertEquals("Bob", result.getContent().get(1).getCustomerName());
     }
 
     @Test
     void shouldReturnOrderById() {
-        Order order = new Order("Charlie", 150.0, "DELIVERED");
+        Order order = new Order("Charlie", 150.0, OrderStatus.DELIVERED);
+
         when(orderRepository.findById(1)).thenReturn(Optional.of(order));
 
         Order result = orderService.getById(1);
         assertEquals("Charlie", result.getCustomerName());
         assertEquals(150.0, result.getAmount());
-        assertEquals("DELIVERED", result.getStatus());
+        assertEquals(OrderStatus.DELIVERED, result.getStatus());
     }
 
     @Test
@@ -60,13 +66,14 @@ class OrderServiceTest {
 
     @Test
     void shouldAddOrderAndReturnSavedOrder() {
-        Order order = new Order("David", 250.0, "PENDING");
+        Order order = new Order("David", 250.0, OrderStatus.PENDING);
+
         when(orderRepository.save(order)).thenReturn(order);
 
         Order result = orderService.addOrder(order);
         assertEquals("David", result.getCustomerName());
         assertEquals(250.0, result.getAmount());
-        assertEquals("PENDING", result.getStatus());
+        assertEquals(OrderStatus.PENDING, result.getStatus());
         verify(orderRepository).save(order);
     }
 
@@ -91,8 +98,8 @@ class OrderServiceTest {
 
     @Test
     void shouldUpdateOrderWhenOrderExists() {
-        Order existingOrder = new Order("Eve", 300.0, "PENDING");
-        Order updatedOrder = new Order("Eve", 350.0, "DELIVERED");
+        Order existingOrder = new Order("Eve", 300.0, OrderStatus.PENDING);
+        Order updatedOrder = new Order("Eve", 350.0, OrderStatus.DELIVERED);
 
         when(orderRepository.findById(1)).thenReturn(Optional.of(existingOrder));
         when(orderRepository.save(existingOrder)).thenReturn(updatedOrder);
@@ -101,7 +108,7 @@ class OrderServiceTest {
 
         assertEquals("Eve", result.getCustomerName());
         assertEquals(350.0, result.getAmount());
-        assertEquals("DELIVERED", result.getStatus());
+        assertEquals(OrderStatus.DELIVERED, result.getStatus());
 
         verify(orderRepository).findById(1);
         verify(orderRepository).save(existingOrder);

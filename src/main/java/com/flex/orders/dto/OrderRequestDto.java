@@ -15,7 +15,7 @@ public class OrderRequestDto {
     private double amount;
 
     @NotBlank(message = "Status is required")
-    @Pattern(regexp = "PENDING|SHIPPED|DELIVERED|CANCELLED", message = "Status must be PENDING, SHIPPED, DELIVERED, or CANCELLED")
+    @Pattern(regexp = "PENDING|COMPLETED|CANCELLED", message = "Status must be PENDING, SHIPPED, DELIVERED, or CANCELLED")
     @Column(nullable = false)
     private String status;
 
